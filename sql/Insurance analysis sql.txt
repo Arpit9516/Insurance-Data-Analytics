@@ -1,0 +1,184 @@
+--1. How Can We View All Insurance Records in the Dataset?
+
+select * from `insurance_data.insurance`;
+
+
+--2. Which Insurance Policies Have a Premium Amount Greater Than 10,000?
+
+SELECT
+    PolicyNumber,
+    CustomerID,
+    PolicyType,
+    PremiumAmount
+FROM `insurance_data.insurance`
+WHERE PremiumAmount > 10000
+ORDER BY PremiumAmount DESC;
+
+--3. View First 10 Records 
+
+SELECT *
+FROM `insurance_data.insurance`
+LIMIT 10;
+
+--4. How Many Insurance Policies Are Available in the Dataset?
+
+SELECT COUNT(*) AS total_policies
+FROM insurance_data;
+
+--5. Which Policy Has the Second Highest Premium Amount?
+
+SELECT
+    PolicyNumber,
+    CustomerID,
+    PolicyType,
+    PremiumAmount
+FROM `insurance_data.insurance`
+ORDER BY PremiumAmount DESC
+LIMIT 1 OFFSET 1;
+
+
+--6. Are There Any Missing (NULL) Values in the Dataset?
+
+SELECT
+COUNT(*)-COUNT(PolicyNumber) AS null_policynumber,
+COUNT(*)-COUNT(CustomerID) AS null_customerid,
+COUNT(*)-COUNT(Gender) AS null_gender,
+COUNT(*)-COUNT(Age) AS null_age,
+COUNT(*)-COUNT(PolicyType) AS null_policytype,
+COUNT(*)-COUNT(PremiumAmount) AS null_premiumamount,
+COUNT(*)-COUNT(CoverageAmount) AS null_coverageamount,
+COUNT(*)-COUNT(ClaimNumber) AS null_claimnumber,
+COUNT(*)-COUNT(ClaimDate) AS null_claimdate,
+COUNT(*)-COUNT(ClaimAmount) AS null_claimamount,
+COUNT(*)-COUNT(ClaimStatus) AS null_claimstatus
+FROM `insurance_data.insurance`
+
+
+--7. Which Policy Type Has the Highest Number of Policies?
+
+SELECT
+PolicyType,
+COUNT(*) AS total_policies
+FROM `insurance_data.insurance`
+GROUP BY PolicyType
+ORDER BY total_policies DESC;
+
+--8. What Is the Average Premium Amount for Each Policy Type?
+
+SELECT
+PolicyType,
+ROUND(AVG(PremiumAmount),2) AS average_premium
+FROM `insurance_data.insurance`
+GROUP BY PolicyType
+ORDER BY average_premium DESC;
+
+--9. What Is the Total Claim Amount for Each Claim Status?
+
+SELECT
+ClaimStatus,
+ROUND(SUM(ClaimAmount),2) AS total_claim_amount
+FROM `insurance_data.insurance`
+GROUP BY ClaimStatus;
+
+--10. What Is the Distribution of Customers by Gender?
+
+SELECT
+Gender,
+COUNT(*) AS total_customers
+FROM `insurance_data.insurance`
+GROUP BY Gender;
+
+--10. Which Age Group Has the Highest Number of Insurance Customers?
+
+SELECT
+CASE
+WHEN Age<25 THEN '18-24'
+WHEN Age BETWEEN 25 AND 34 THEN '25-34'
+WHEN Age BETWEEN 35 AND 44 THEN '35-44'
+WHEN Age BETWEEN 45 AND 54 THEN '45-54'
+ELSE '55+'
+END AS age_group,
+COUNT(*) AS total_customers
+FROM `insurance_data.insurance`
+GROUP BY age_group
+ORDER BY total_customers DESC;
+
+--11. Which Policies Have the Highest top 10  Claim Amounts?
+
+SELECT
+PolicyNumber,
+CustomerID,
+ClaimAmount
+FROM `insurance_data.insurance`
+ORDER BY ClaimAmount DESC
+LIMIT 10;
+
+--12. How Many Policies Have No Successful Claims?
+
+SELECT
+COUNT(*) AS policies_without_claim
+FROM `insurance_data.insurance`
+WHERE ClaimStatus='Rejected'
+OR ClaimAmount=0;
+
+--13. How Does Premium Amount Compare with Coverage Amount Across Policy Types?
+
+SELECT
+PolicyType,
+ROUND(AVG(PremiumAmount),2) AS avg_premium,
+ROUND(AVG(CoverageAmount),2) AS avg_coverage
+FROM `insurance_data.insurance`
+GROUP BY PolicyType;
+
+
+
+
+--14. Which Policy Types Generate the Highest Total Claim Amount?
+
+SELECT
+PolicyType,
+ROUND(SUM(ClaimAmount),2) AS total_claim_amount
+FROM `insurance_data.insurance`
+GROUP BY PolicyType
+ORDER BY total_claim_amount DESC;
+
+--15. Which Customers Have the Highest Coverage Amount?
+
+SELECT
+CustomerID,
+PolicyNumber,
+CoverageAmount
+FROM `insurance_data.insurance`
+ORDER BY CoverageAmount DESC
+LIMIT 10;
+
+
+--16. Which Policy Type Generates the Highest Total Premium?
+
+WITH policy_premium AS (
+    SELECT
+        PolicyType,
+        SUM(PremiumAmount) AS total_premium
+    FROM `insurance_data.insurance`
+    GROUP BY PolicyType
+)
+
+SELECT *
+FROM policy_premium
+ORDER BY total_premium DESC;
+
+--17. Which Are the Top 5 Customers Based on Claim Amount?
+
+WITH ranked_claims AS
+(
+    SELECT
+        PolicyNumber,
+        CustomerID,
+        ClaimAmount,
+        RANK() OVER(ORDER BY ClaimAmount DESC) AS claim_rank
+    FROM `insurance_data.insurance`
+)
+
+SELECT *
+FROM ranked_claims
+WHERE claim_rank <= 5;
